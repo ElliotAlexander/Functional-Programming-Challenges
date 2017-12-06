@@ -1,0 +1,1 @@
+rename (Lam 1 (App (Lam 1 (Var 1)) (Var 1))) 1 3

@@ -20,3 +20,4 @@ rename (Var x) v1 v2 | x == v1 = Var v2 | otherwise = Var x
 rename (App e1 e2) v1 v2 = App (rename e1 v1 v2) (rename e2 v1 v2)
 
 -- Exercise 3
+alphaEquivalent :: Expr -> Expr -> Bool
