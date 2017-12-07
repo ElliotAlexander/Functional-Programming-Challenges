@@ -50,3 +50,13 @@ substitute (Var x) i e1 | x == i = e1 | otherwise = (Var x)
 
 
 -- Pretty Printer :)
+prettyPrint :: Expr -> String
+prettyPrint (Lam x (Lam a e2)) = "\\x" ++ show x ++ (prettyPrint' (Lam a e2))
+prettyPrint (Lam x e1) = "\\x" ++ show x ++ "->" ++ (prettyPrint e1)
+prettyPrint (App e1 e2) = (prettyPrint e1) ++ (prettyPrint e2)
+prettyPrint (Var x) = "x" ++ show x
+
+prettyPrint' :: Expr -> String
+prettyPrint' (Lam x (Lam y e2)) = "x" ++ show x ++ (prettyPrint' (Lam y e2))
+prettyPrint' (Lam x e1) = "x" ++ show x ++ "->" ++ (prettyPrint e1)
+prettyPrint' e1 = prettyPrint e1
