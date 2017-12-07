@@ -5,3 +5,7 @@ rename (Lam 1 (App (Lam 2 (App (Var 3) (Var 2))) (Var 2))) 2 5
 hasRedex (Lam 1 (App (Var 1) (Var 2)))
 
 hasRedex (Lam 1 (App (Lam 2 (App (Var 1) (Var 2))) (Var 3)))
+
+prettyPrint (Lam 1 (Lam 2 (Lam 3 (App (Var 1) (App (Var 2) (Var 3))))))
+
+(Lam 1 (Lam 2 (App (App (Var 1) (Var 2)) (Var 3))))
