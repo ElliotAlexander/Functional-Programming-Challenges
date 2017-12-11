@@ -23,9 +23,9 @@ rename (App e1 e2) v1 v2 = App (rename e1 v1 v2) (rename e2 v1 v2)
 -- Exercise 3
 
 --alphaEquivalent :: Expr -> Expr -> Bool
---alphaEquivalent e1 e2 = all (\x -> x elem (alphaEquivalent' e1 -1)) (alphaEquivalent' e2 -1)
---alphaEquivalent e1 e2 =  (alphaEquivalent' e1 10) Set.isSubsetOf (alphaEquivalent' e2 -10)
-
+--alphaEquivalent (Lam x e1) (Lam y e2) = alphaEquivalent e1 e2
+--alphaEquivalent (Var x) (Var y) = True
+--alphaEquivalent (App e1 e2) (App e3 e4) | e1 == e3 && e2 == e4 =  | 
 
 
 -- Exercise 4
@@ -51,12 +51,12 @@ substitute (Var x) i e1 | x == i = e1 | otherwise = (Var x)
 
 -- Pretty Printer :)
 prettyPrint :: Expr -> String
-prettyPrint (Lam x (Lam a e2)) = "λx" ++ show x ++ (prettyPrint' (Lam a e2))
-prettyPrint (Lam x e1) = "λx" ++ show x ++ "->" ++ (prettyPrint e1)
+prettyPrint (Lam x (Lam a e2)) = "\\x" ++ show x  ++ (prettyPrint' (Lam a e2)) 
+prettyPrint (Lam x e1) = "\\x" ++ show x ++ "->" ++ (prettyPrint e1)
 prettyPrint (App e1 e2) = (prettyPrint e1) ++ (prettyPrint e2)
 prettyPrint (Var x) = "x" ++ show x
 
 prettyPrint' :: Expr -> String
 prettyPrint' (Lam x (Lam y e2)) = "x" ++ show x ++ (prettyPrint' (Lam y e2))
-prettyPrint' (Lam x e1) = "x" ++ show x ++ "->" ++ (prettyPrint e1)
+prettyPrint' (Lam x e1) = "x" ++ show x ++ "" ++ "->" ++ (prettyPrint' e1)
 prettyPrint' e1 = prettyPrint e1
