@@ -22,10 +22,17 @@ rename (App e1 e2) v1 v2 = App (rename e1 v1 v2) (rename e2 v1 v2)
 
 -- Exercise 3
 
---alphaEquivalent :: Expr -> Expr -> Bool
---alphaEquivalent (Lam x e1) (Lam y e2) = alphaEquivalent e1 e2
---alphaEquivalent (Var x) (Var y) = True
---alphaEquivalent (App e1 e2) (App e3 e4) | e1 == e3 && e2 == e4 =  | 
+alphaEquivalent :: Expr -> Expr -> Bool
+alphaEquivalent e1 e2 | (areExprEqual e1 e2) == True = True | otherwise = False
+alphaEquivalent 
+
+
+
+areExprEqual :: Expr -> Expr -> Bool
+areExprEqual (Var x) (Var y) | x == y = True | otherwise = False
+areExprEqual (Lam x e1) (Lam y e2) | (x == y) && (areExprEqual e1 e2) = True | otherwise = False
+areExprEqual (App e1 e2) (App e3 e4) | ((e1 == e3 && e2 == e4)||(e1 == e4 && e2 == e3)) = True | otherwise = False
+
 
 
 -- Exercise 4
