@@ -1,30 +1,39 @@
-import qualified Data.List as List
-import qualified Data.Set as Set
-
 data Expr = App Expr Expr | Lam Int Expr | Var Int deriving (Show, Eq)
 
 -- Exercise 1
 -- Seems to work well.
 
 freeVariables :: Expr -> [Int]
-freeVariables (Lam x e1) = freeVariables e1 List.\\ [x]
+freeVariables (Lam x e1) = removeVal (freeVariables e1) x
 freeVariables (Var x) = [x]
 freeVariables (App e1 e2) = (freeVariables e1) ++ (freeVariables e2)
 
--- Exercise 2
--- not fully functional - needs work. 
+removeVal :: Eq a => [a] -> a -> [a]
+removeVal (x:[]) val | x == val = [x] | otherwise = []
+removeVal (x:xs) val
+    | x == val = [] ++ removeVal xs val
+    | otherwise = [x] ++ removeVal xs val
 
-rename :: Expr -> Int -> Int -> Expr
-rename (Lam x e1) v1 v2 | x == v1 && (elem x (freeVariables e1)) = Lam (v2) (rename e1 v1 v2) | otherwise = Lam (x) (rename e1 v1 v2)
-rename (Var x) v1 v2 | x == v1 = Var v2 | otherwise = Var x
+
+rename :: Expr -> Int -> Int -> Expr 
+-- Check that the next expression isn't a lam of the same value, if it is break.
+rename (Lam x e1) v1 v2 | x == v1 && (checkExpr e1 x == False) = (Lam v2 (rename e1 0 0))
+rename (Lam x e1) v1 v2 | x == v1 = (Lam v2 e1)
+--rename (Lam x e1) v1 v2 |  
+rename (Var x) v1 v2 | x == v1 = (Var v2) | otherwise = (Var x)
 rename (App e1 e2) v1 v2 = App (rename e1 v1 v2) (rename e2 v1 v2)
+
+checkExpr :: Expr -> Int -> Bool
+checkExpr (Lam x e1) i | x == i = True | otherwise = False
+checkExpr (Var a) i = False
+checkExpr (App e1 e2) i = False
 
 
 -- Exercise 3
 
 alphaEquivalent :: Expr -> Expr -> Bool
+alphaEquivalent (Var x) (Var y) | x == y = True | otherwise = False
 alphaEquivalent e1 e2 | (areExprEqual e1 e2) == True = True | otherwise = False
-alphaEquivalent 
 
 
 
@@ -57,9 +66,12 @@ substitute (Var x) i e1 | x == i = e1 | otherwise = (Var x)
 
 
 -- Pretty Printer :)
+
 prettyPrint :: Expr -> String
 prettyPrint (Lam x (Lam a e2)) = "\\x" ++ show x  ++ (prettyPrint' (Lam a e2)) 
 prettyPrint (Lam x e1) = "\\x" ++ show x ++ "->" ++ (prettyPrint e1)
+prettyPrint (App (Lam x e1) e2) = "(" ++ prettyPrint (Lam x e1) ++ ")" ++ prettyPrint e2 
+prettyPrint (App e2 (Lam x e1)) = prettyPrint e2 ++ "(" ++ prettyPrint (Lam x e2) ++ ")"
 prettyPrint (App e1 e2) = (prettyPrint e1) ++ (prettyPrint e2)
 prettyPrint (Var x) = "x" ++ show x
 
