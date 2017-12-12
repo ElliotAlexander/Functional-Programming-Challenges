@@ -15,17 +15,21 @@ removeVal (x:xs) val
     | otherwise = [x] ++ removeVal xs val
 
 
+-- Exercise 2
+
 rename :: Expr -> Int -> Int -> Expr 
 -- Check that the next expression isn't a lam of the same value, if it is break.
-rename (Lam x e1) v1 v2 | x == v1 && (checkExpr e1 x == False) = (Lam v2 (rename e1 0 0))
-rename (Lam x e1) v1 v2 | x == v1 = (Lam v2 e1)
+rename (Lam x e1) v1 v2 | x == v1 = (Lam v2 (rename' e1 v1 v2))
+rename (Lam x e1) v1 v2 = (Lam x (rename e1 v1 v2))
 rename (Var x) v1 v2 | x == v1 = (Var v2) | otherwise = (Var x)
 rename (App e1 e2) v1 v2 = App (rename e1 v1 v2) (rename e2 v1 v2)
 
-checkExpr :: Expr -> Int -> Bool
-checkExpr (Lam x e1) i | x == i = True | otherwise = False
-checkExpr (Var a) i = False
-checkExpr (App e1 e2) i = False
+rename' :: Expr -> Int -> Int -> Expr
+rename' (Lam x e1) v1 v2 | x == v1 = (Lam x (rename' e1 0 0))
+rename' (Lam x e1) v1 v2 = (Lam x (rename' e1 v1 v2))
+rename' (Var x) v1 v2 | x == v1 = (Var v2)
+rename' (Var x) v1 v2 = (Var  x)
+rename' (App e1 e2) v1 v2 = App (rename' e1 v1 v2) (rename' e2 v1 v2)
 
 
 -- Exercise 3
@@ -37,11 +41,22 @@ alphaEquivalent (Var x) (Var y) | x == y = True | otherwise = False
 alphaEquivalent e1 e2 | (areExprEqual e1 e2) == True = True | otherwise = False
 
 
-
 areExprEqual :: Expr -> Expr -> Bool
 areExprEqual (Var x) (Var y) | x == y = True | otherwise = False
 areExprEqual (Lam x e1) (Lam y e2) | (x == y) && (areExprEqual e1 e2) = True | otherwise = False
 areExprEqual (App e1 e2) (App e3 e4) | ((e1 == e3 && e2 == e4)||(e1 == e4 && e2 == e3)) = True | otherwise = False
+
+boundVariables :: Expr -> [Int]
+boundVariables (Lam x e1) = [x] ++ boundVariables e1
+boundVariables (App e1 e2) = boundVariables e1 ++ boundVariables e2
+boundVariables (Var x) = [x]
+ 
+contains ::  [Int] -> Int -> Bool
+contains [] a = False
+contains (x:xs) a
+    | x == a = True
+    | length xs == 0 = False
+    | otherwise = contains xs a
 
 
 
@@ -59,11 +74,21 @@ hasRedex' (Var x) = False
 
 
 -- Exercise 5
-substitute :: Expr -> Int -> Expr -> Expr
-substitute (Lam x e1) i e2 | x == i = (App e2 (substitute e1 i e2)) | otherwise = (Lam x (substitute e1 i e2))
-substitute (App e1 e2) i e3 = (App (substitute e1 i e3) (substitute e2 i e3))
-substitute (Var x) i e1 | x == i = e1 | otherwise = (Var x)
+    
+substitute :: Expr -> Int -> Expr -> Expr 
+substitute e1 i e2 = substitute' e1 i e2 (freeVariables e1)
 
+substitute' :: Expr -> Int -> Expr -> [Int] -> Expr
+substitute' (Lam x e1) i e2 freevars = (Lam x (substitute' e1 i e2 freevars))
+substitute' (Var x) i e1 freevars
+    | (x == i) && (contains freevars i) = e1 
+    | otherwise = (Var x) 
+substitute' (App e1 e2) i e3 freevars = (App (substitute' e1 i e3 freevars) (substitute' e2  i e3 freevars))
+
+containsLam :: Expr -> Int -> Bool
+containsLam (App e1 e2) i = (containsLam e1 i) && (containsLam e2 i) 
+containsLam (Lam a e1) i | i == a = True | otherwise = containsLam e1 i
+containsLam (Var x) i = False
 
 
 -- Pretty Printer :)
@@ -73,6 +98,7 @@ prettyPrint (Lam x (Lam a e2)) = "\\x" ++ show x  ++ (prettyPrint' (Lam a e2))
 prettyPrint (Lam x e1) = "\\x" ++ show x ++ "->" ++ (prettyPrint e1)
 prettyPrint (App (Lam x e1) e2) = "(" ++ prettyPrint (Lam x e1) ++ ")" ++ prettyPrint e2 
 prettyPrint (App e2 (Lam x e1)) = prettyPrint e2 ++ "(" ++ prettyPrint (Lam x e2) ++ ")"
+prettyPrint (App e3 (App e1 e2)) = (prettyPrint e3) ++ "(" ++ (prettyPrint (App e1 e2)) ++ ")"
 prettyPrint (App e1 e2) = (prettyPrint e1) ++ (prettyPrint e2)
 prettyPrint (Var x) = "x" ++ show x
 

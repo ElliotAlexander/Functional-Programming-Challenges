@@ -9,7 +9,7 @@ translate e = out(ft(toH e))
 
 toH :: Expr -> HExpr
 toH (App e1 e2) = (Happ (toH e1) (toH e2))
---toH (Lam i e1) = (HLam i (toH e1))
+toH (Lam i e1) = (HLam i (toH e1))
 toH (Var x) = (HVar x)
 
 out :: HExpr -> ExprCL
