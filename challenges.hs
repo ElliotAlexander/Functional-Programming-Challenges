@@ -30,6 +30,8 @@ checkExpr (App e1 e2) i = False
 
 -- Exercise 3
 
+-- Still needs fixing
+
 alphaEquivalent :: Expr -> Expr -> Bool
 alphaEquivalent (Var x) (Var y) | x == y = True | otherwise = False
 alphaEquivalent e1 e2 | (areExprEqual e1 e2) == True = True | otherwise = False
