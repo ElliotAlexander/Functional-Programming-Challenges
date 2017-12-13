@@ -1,0 +1,54 @@
+\section{Composition Law Proof}
+\begin{normalsize}
+Given the law, we can translate the left hand side to equal the right.
+\begin{lstlisting}[style=code]
+pure (.) <*> u <*> v <*> w = u <*> (v <*> w)
+\end{lstlisting}
+Taking only the left hand side, and applying the definition of pure for Maybe:
+\begin{lstlisting}[style=code]
+Pure x = Just x
+\end{lstlisting}
+The left hand side is left as:
+\begin{lstlisting}[style=code]
+(Just (.)) <*> u <*> v <*> w 
+\end{lstlisting}
+We know that for the Maybe type, $<*>$ is defined as:
+\begin{lstlisting}[style=code] 	12`	
+instance Applicative Maybe where  
+    pure = Just  
+    Nothing <*> _ = Nothing  
+    (Just f) <*> something = fmap f something  
+\end{lstlisting}
+Hence if either argument for $<*>$ is nothing, the entire expression reduces to Nothing, so we can ignore these and presume u, v and w are something. Using this, we can then apply $<*>$ (being careful to keep terms left-applicative) to the first two terms.
+\begin{lstlisting}[style=code]
+(Just (.) f) <*> (Just g) <*> (Just x)
+\end{lstlisting}
+Repeating this:
+\begin{lstlisting}[style=code]
+(Just (.) f g) <*> (Just x)
+\end{lstlisting}
+And then applying $<*>$ a final time:
+\begin{lstlisting}[style=code]
+(Just (f.g) x)
+\end{lstlisting}
+Which expands to:
+\begin{lstlisting}[style=code]
+(Just f (g x))
+\end{lstlisting}
+
+From here, we can apply:
+\begin{lstlisting}[style=code]
+pure f <*> pure x = pure (f x)
+\end{lstlisting}
+We apply the homomorphism law once, and then again to the second generated term. 
+\begin{lstlisting}[style=code]
+(Just f) <*> Just (g x) 
+
+(Just f) <*> ( (Just g) <*> (Just x) )
+\end{lstlisting}
+
+Finally, we can remove the earlier definitions of u, v, w to give the right side of our original equation.
+\begin{lstlisting}[style=code]
+u <*> (v <*> w)
+\end{lstlisting}
+\end{normalsize}

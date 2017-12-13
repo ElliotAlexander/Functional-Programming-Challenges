@@ -3,7 +3,6 @@ data Expr = App Expr Expr | Lam Int Expr | Var Int deriving (Show, Eq)
 -- Exercise 1
 -- Seems to work well.
 freeVariables :: Expr -> [Int]
--- 
 freeVariables (Lam x e1) = removeVal (freeVariables e1) x
 freeVariables (Var x) = [x]
 freeVariables (App e1 e2) = (freeVariables e1) ++ (freeVariables e2)
@@ -22,6 +21,9 @@ rename :: Expr -> Int -> Int -> Expr
 rename (Lam x e1) v1 v2 | x == v1 = (Lam v2 (rename' e1 v1 v2))
 rename (Lam x e1) v1 v2 = (Lam x (rename e1 v1 v2))
 rename (Var x) v1 v2 | x == v1 = (Var v2) | otherwise = (Var x)
+rename (App (Lam x e1) (Lam y e2)) v1 v2 = (App (rename' (Lam x e1) v1 v2) (rename' (Lam y e2) v1 v2))
+rename (App (Lam x e1) e2) v1 v2 = (App (rename' (Lam x e1) v1 v2) (rename e2 v1 v2))
+rename (App e1 (Lam x e2)) v1 v2 = (App (rename e1 v1 v2) (rename' (Lam x e2) v1 v2))
 rename (App e1 e2) v1 v2 = App (rename e1 v1 v2) (rename e2 v1 v2)
 
 rename' :: Expr -> Int -> Int -> Expr
