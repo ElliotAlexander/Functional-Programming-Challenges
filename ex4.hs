@@ -1,3 +1,6 @@
+import Control.Applicative
+import Data.Char
+
 data ExprCL = AppCL ExprCL ExprCL | K | S | VarCL Int deriving (Show)
 data Expr = App Expr Expr | Lam Int Expr | Var Int deriving (Show, Eq)
 
@@ -30,7 +33,7 @@ ft (Happ e1 e2) = Happ (ft e1) (ft e2)
 
 -- Rule 3 
 -- T[λx->E] => (KT[E]) 
-ft (HLam x e1) = Happ (HK) (ft e1)
+ft (HLam x e1) | (hCheckFree e1 x) == False = Happ (HK) (ft e1)
 
 -- Rule 4
 -- T[\x->E] => (K T[E])
@@ -44,7 +47,7 @@ ft (HLam x (HLam y e1)) | (hCheckFree e1 x) == True = (ft (HLam x (ft (HLam y (e
 -- Rule 6
 -- T[λx->(E₁E₂)] => (ST[λx->E₁]T[λx->E₂]) 
 ft (HLam x (Happ e1 e2)) | (hCheckFree e1 x || hCheckFree e2 x) = Happ (Happ HS (ft (HLam x e1))) (ft (HLam x e2))
-
+ft e = e
 
 
 
@@ -52,9 +55,7 @@ ft (HLam x (Happ e1 e2)) | (hCheckFree e1 x || hCheckFree e2 x) = Happ (Happ HS 
 -- And check on a 1-1 basis.
 hCheckFree :: HExpr -> Int -> Bool
 hCheckFree (HVar x) i |  ((i == x) == True) = True
-hCheckFree (HLam x e1) i | (hCheckFree e1 i == False) && (x /= i) = True | otherwise = False
+hCheckFree (HLam x e1) i | (hCheckFree e1 i) && (x /= i) = True | otherwise = False
 hCheckFree (Happ e1 e2) i | (hCheckFree e1 i || hCheckFree e2 i) = True | otherwise = False
-hCheckFree HK i = False
-hCheckFree HS i = False
 hCheckFree _ _ = False
 

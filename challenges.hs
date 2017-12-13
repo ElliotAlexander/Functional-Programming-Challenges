@@ -2,14 +2,13 @@ data Expr = App Expr Expr | Lam Int Expr | Var Int deriving (Show, Eq)
 
 -- Exercise 1
 -- Seems to work well.
-
 freeVariables :: Expr -> [Int]
 freeVariables (Lam x e1) = removeVal (freeVariables e1) x
 freeVariables (Var x) = [x]
 freeVariables (App e1 e2) = (freeVariables e1) ++ (freeVariables e2)
 
 removeVal :: Eq a => [a] -> a -> [a]
-removeVal (x:[]) val | x == val = [x] | otherwise = []
+removeVal [] _ = []
 removeVal (x:xs) val
     | x == val = [] ++ removeVal xs val
     | otherwise = [x] ++ removeVal xs val
