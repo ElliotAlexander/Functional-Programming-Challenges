@@ -3,6 +3,7 @@ data Expr = App Expr Expr | Lam Int Expr | Var Int deriving (Show, Eq)
 -- Exercise 1
 -- Seems to work well.
 freeVariables :: Expr -> [Int]
+-- 
 freeVariables (Lam x e1) = removeVal (freeVariables e1) x
 freeVariables (Var x) = [x]
 freeVariables (App e1 e2) = (freeVariables e1) ++ (freeVariables e2)
@@ -15,7 +16,7 @@ removeVal (x:xs) val
 
 
 -- Exercise 2
-
+-- Needs fixing
 rename :: Expr -> Int -> Int -> Expr 
 -- Check that the next expression isn't a lam of the same value, if it is break.
 rename (Lam x e1) v1 v2 | x == v1 = (Lam v2 (rename' e1 v1 v2))
@@ -27,7 +28,7 @@ rename' :: Expr -> Int -> Int -> Expr
 rename' (Lam x e1) v1 v2 | x == v1 = (Lam x (rename' e1 0 0))
 rename' (Lam x e1) v1 v2 = (Lam x (rename' e1 v1 v2))
 rename' (Var x) v1 v2 | x == v1 = (Var v2)
-rename' (Var x) v1 v2 = (Var  x)
+rename' (Var x) v1 v2 = (Var x)
 rename' (App e1 e2) v1 v2 = App (rename' e1 v1 v2) (rename' e2 v1 v2)
 
 
@@ -36,28 +37,35 @@ rename' (App e1 e2) v1 v2 = App (rename' e1 v1 v2) (rename' e2 v1 v2)
 -- Still needs fixing
 
 alphaEquivalent :: Expr -> Expr -> Bool
-alphaEquivalent (Var x) (Var y) | x == y = True | otherwise = False
-alphaEquivalent e1 e2 | (areExprEqual e1 e2) == True = True | otherwise = False
+alphaEquivalent e1 e2
+    | completeequivalent e1 e2 = True
+    | typeequivalent e1 e2 = renamer e1 e2 (canberenamed e1 e2)
 
 
-areExprEqual :: Expr -> Expr -> Bool
-areExprEqual (Var x) (Var y) | x == y = True | otherwise = False
-areExprEqual (Lam x e1) (Lam y e2) | (x == y) && (areExprEqual e1 e2) = True | otherwise = False
-areExprEqual (App e1 e2) (App e3 e4) | ((e1 == e3 && e2 == e4)||(e1 == e4 && e2 == e3)) = True | otherwise = False
+typeequivalent :: Expr -> Expr -> Bool
+typeequivalent (Var _ ) (Var _ ) = True
+typeequivalent (Lam _ e1) (Lam _ e2) = typeequivalent e1 e2
+typeequivalent (App e1 e2) (App e3 e4) = ((typeequivalent e1 e3 && typeequivalent e2 e4) || (typeequivalent e1 e4 && typeequivalent e2 e3))
+typeequivalent _ _ = False
 
-boundVariables :: Expr -> [Int]
-boundVariables (Lam x e1) = [x] ++ boundVariables e1
-boundVariables (App e1 e2) = boundVariables e1 ++ boundVariables e2
-boundVariables (Var x) = [x]
- 
-contains ::  [Int] -> Int -> Bool
-contains [] a = False
-contains (x:xs) a
-    | x == a = True
-    | length xs == 0 = False
-    | otherwise = contains xs a
+completeequivalent :: Expr -> Expr -> Bool
+completeequivalent (Var x) (Var y) = x == y
+completeequivalent (Lam x e1) (Lam y e2) = ((x == y) && completeequivalent e1 e2)
+completeequivalent (App e1 e2) (App e3 e4) = ((completeequivalent e1 e3 && completeequivalent e2 e4 ) || (completeequivalent e1 e4 && completeequivalent e2 e3))
+completeequivalent _ _ = False
 
+canberenamed :: Expr -> Expr -> [(Int, Int)]
+canberenamed (App e1 e2) (App e3 e4) = canberenamed e1 e3 ++ canberenamed e2 e4
+canberenamed (Var x) (Var y) 
+    | x == y = [] 
+    | otherwise = [(x,y)]
+canberenamed (Lam x e1) (Lam y e2)
+    | x == y = canberenamed e1 e2 
+    | otherwise = canberenamed e1 e2 ++ [(x,y)] 
 
+renamer :: Expr -> Expr -> [(Int, Int)] -> Bool
+renamer e1 e2 [] = False
+renamer e1 e2 (x:xs) = ((completeequivalent (rename e1 (fst x) (snd x)) e2) || renamer e1 e2 xs)
 
 -- Exercise 4
 
@@ -74,8 +82,6 @@ hasRedex' (Var x) = False
 
 -- Exercise 5
 
-
--- Contains is included above.
 substitute :: Expr -> Int -> Expr -> Expr 
 substitute (Lam x ex) var newe
     | x == var = (Lam x newe)
@@ -95,7 +101,7 @@ allvars (Lam x e1) = [x] ++ allvars e1
 allvars (Var x) = [x]
 
 nextint :: Expr -> Expr -> Int
-nextint e1 e2 = [new | new <- [0..], new /= (max' (allvars e1 ++ allvars e2))] !! 0
+nextint e1 e2 = [new | new <- [1..], new /= (max' (allvars e1 ++ allvars e2))] !! 0
 
 max' :: (Ord a) => [a] -> a
 max' [x] = x
@@ -103,7 +109,16 @@ max' (x:xs)
     | (x > max' xs) = x
     | otherwise = max' xs
 
+contains ::  [Int] -> Int -> Bool
+contains [] a = False
+contains (x:xs) a
+    | x == a = True
+    | length xs == 0 = False
+    | otherwise = contains xs a
+
+
 -- Pretty Printer :)
+-- Needs fixing
 
 prettyPrint :: Expr -> String
 prettyPrint (Lam x (Lam a e2)) = "\\x" ++ show x  ++ (prettyPrint' (Lam a e2)) 
