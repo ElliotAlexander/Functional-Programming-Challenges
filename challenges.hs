@@ -73,22 +73,35 @@ hasRedex' (Var x) = False
 
 
 -- Exercise 5
-    
+
+
+-- Contains is included above.
 substitute :: Expr -> Int -> Expr -> Expr 
-substitute e1 i e2 = substitute' e1 i e2 (freeVariables e1)
+substitute (Lam x ex) var newe
+    | x == var = (Lam x newe)
+    | contains (allvars newe) x = Lam next (substitute (rename ex x next) var newe)
+    | otherwise = (Lam x (substitute ex var newe))
+       where
+            next = nextint ex newe
+substitute (App e1 e2) var newe = (App (substitute e1 var newe) (substitute e1 var newe))
+substitute (Var x) var newe
+    | x == var = newe
+    | otherwise = (Var x)
 
-substitute' :: Expr -> Int -> Expr -> [Int] -> Expr
-substitute' (Lam x e1) i e2 freevars = (Lam x (substitute' e1 i e2 freevars))
-substitute' (Var x) i e1 freevars
-    | (x == i) && (contains freevars i) = e1 
-    | otherwise = (Var x) 
-substitute' (App e1 e2) i e3 freevars = (App (substitute' e1 i e3 freevars) (substitute' e2  i e3 freevars))
 
-containsLam :: Expr -> Int -> Bool
-containsLam (App e1 e2) i = (containsLam e1 i) && (containsLam e2 i) 
-containsLam (Lam a e1) i | i == a = True | otherwise = containsLam e1 i
-containsLam (Var x) i = False
+allvars :: Expr -> [Int]
+allvars (App e1 e2) = allvars e1 ++ allvars e2
+allvars (Lam x e1) = [x] ++ allvars e1
+allvars (Var x) = [x]
 
+nextint :: Expr -> Expr -> Int
+nextint e1 e2 = [new | new <- [0..], new /= (max' (allvars e1 ++ allvars e2))] !! 0
+
+max' :: (Ord a) => [a] -> a
+max' [x] = x
+max' (x:xs)
+    | (x > max' xs) = x
+    | otherwise = max' xs
 
 -- Pretty Printer :)
 
