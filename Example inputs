@@ -12,3 +12,7 @@ prettyPrint (Lam 1 (Lam 2 (Lam 3 (App (Var 1) (App (Var 2) (Var 3))))))
 
 
 rename (Lam 5 (App (Lam 1 (App (Var 5) (Var 1))) (Var 3))) 5 4
+
+
+Lam 1 (Lam 2 (App (App (Var 1) (Var 2)) (Var 3)))) 3 (Var 4)
+Lam 1 (Lam 2 (App (App (Var 1) (Var 1)) (App (Var 1) (Var 1))))

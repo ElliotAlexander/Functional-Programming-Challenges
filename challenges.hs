@@ -21,13 +21,10 @@ rename :: Expr -> Int -> Int -> Expr
 rename (Lam x e1) v1 v2 | x == v1 = (Lam v2 (rename' e1 v1 v2))
 rename (Lam x e1) v1 v2 = (Lam x (rename e1 v1 v2))
 rename (Var x) v1 v2 | x == v1 = (Var v2) | otherwise = (Var x)
-rename (App (Lam x e1) (Lam y e2)) v1 v2 = (App (rename' (Lam x e1) v1 v2) (rename' (Lam y e2) v1 v2))
-rename (App (Lam x e1) e2) v1 v2 = (App (rename' (Lam x e1) v1 v2) (rename e2 v1 v2))
-rename (App e1 (Lam x e2)) v1 v2 = (App (rename e1 v1 v2) (rename' (Lam x e2) v1 v2))
 rename (App e1 e2) v1 v2 = App (rename e1 v1 v2) (rename e2 v1 v2)
 
 rename' :: Expr -> Int -> Int -> Expr
-rename' (Lam x e1) v1 v2 | x == v1 = (Lam x (rename' e1 0 0))
+rename' (Lam x e1) v1 v2 | x == v1 = (Lam x (rename e1 0 0))
 rename' (Lam x e1) v1 v2 = (Lam x (rename' e1 v1 v2))
 rename' (Var x) v1 v2 | x == v1 = (Var v2)
 rename' (Var x) v1 v2 = (Var x)
@@ -35,13 +32,8 @@ rename' (App e1 e2) v1 v2 = App (rename' e1 v1 v2) (rename' e2 v1 v2)
 
 
 -- Exercise 3
-
--- Still needs fixing
-
 alphaEquivalent :: Expr -> Expr -> Bool
-alphaEquivalent e1 e2
-    | completeequivalent e1 e2 = True
-    | typeequivalent e1 e2 = renamer e1 e2 (canberenamed e1 e2)
+alphaEquivalent e1 e2 | completeequivalent e1 e2 = True | typeequivalent e1 e2 = renamer e1 e2 (canberenamed e1 e2 ) | otherwise = False
 
 
 typeequivalent :: Expr -> Expr -> Bool
@@ -57,17 +49,22 @@ completeequivalent (App e1 e2) (App e3 e4) = ((completeequivalent e1 e3 && compl
 completeequivalent _ _ = False
 
 canberenamed :: Expr -> Expr -> [(Int, Int)]
-canberenamed (App e1 e2) (App e3 e4) = canberenamed e1 e3 ++ canberenamed e2 e4
-canberenamed (Var x) (Var y) 
-    | x == y = [] 
-    | otherwise = [(x,y)]
-canberenamed (Lam x e1) (Lam y e2)
-    | x == y = canberenamed e1 e2 
-    | otherwise = canberenamed e1 e2 ++ [(x,y)] 
+canberenamed (App e1 e2) (App e3 e4)  = canberenamed e1 e3 ++ canberenamed e2 e4
+canberenamed (Var x) (Var y) | x == y = [] | otherwise = [(x,y)]
+canberenamed (Lam x e1) (Lam y e2) | x == y = canberenamed e1 e2 | otherwise = canberenamed e1 e2 ++ [(x,y)] 
+
+
+-- This didn't quite work as intended, but was v.close.
+--renamer :: Expr -> Expr -> [(Int, Int)] -> Bool
+--renamer e1 e2 [] = False
+--renamer e1 e2 (x:xs) = ((completeequivalent (rename e1 (fst x) (snd x)) e2) || renamer e1 e2 xs)
 
 renamer :: Expr -> Expr -> [(Int, Int)] -> Bool
-renamer e1 e2 [] = False
-renamer e1 e2 (x:xs) = ((completeequivalent (rename e1 (fst x) (snd x)) e2) || renamer e1 e2 xs)
+renamer e1 e2 xs = not (checkEmpty ([ a | a <- xs, completeequivalent (rename e1 (fst a) (snd a)) e2]))
+
+checkEmpty :: [a] -> Bool
+checkEmpty [] = True
+checkEmpty xs = False
 
 -- Exercise 4
 
@@ -103,13 +100,12 @@ allvars (Lam x e1) = [x] ++ allvars e1
 allvars (Var x) = [x]
 
 nextint :: Expr -> Expr -> Int
-nextint e1 e2 = [new | new <- [1..], new /= (max' (allvars e1 ++ allvars e2))] !! 0
+nextint e1 e2  = nextint' e1 e2 1
 
-max' :: (Ord a) => [a] -> a
-max' [x] = x
-max' (x:xs)
-    | (x > max' xs) = x
-    | otherwise = max' xs
+nextint' :: Expr -> Expr -> Int -> Int
+nextint' e1 e2 i
+    | (contains (allvars e1 ++ allvars e2) i) == False = i
+    | otherwise = nextint' e1 e2 (i + 1)
 
 contains ::  [Int] -> Int -> Bool
 contains [] a = False
@@ -120,7 +116,6 @@ contains (x:xs) a
 
 
 -- Pretty Printer :)
--- Needs fixing
 
 prettyPrint :: Expr -> String
 prettyPrint (Lam x (Lam a e2)) = "\\x" ++ show x  ++ (prettyPrint' (Lam a e2)) 
