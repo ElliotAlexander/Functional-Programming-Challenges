@@ -35,6 +35,7 @@ hasRedex (App (App (App (Var 1) (Lam 1 (Var 2))) (Var 3)) (Var 4)) = True
 hasRedex (Lam 1 (Var 2)) = False
 hasRedex (App (Lam 1 (Var 1)) (Var 1)) = True
 hasRedex (Lam 1 (App (Var 1) (Var 2))) = False
+hasRedex (App (Lam 1 (App (Var 1) (Var 2))) (Lam 3 (Var 5))) = True
 
 -- exercise 5
 substitute (App (Var 1) (Lam 5 (Var 1))) 1 (App (Var 2) (Var 3)) = App (App (Var 2) (Var 3)) (App (Var 2) (Var 3))
